@@ -14,8 +14,15 @@ function harness() {
   let nextId = 0;
   const frames = new Map();
   const listeners = new Map();
+  const motionListeners = new Set();
   const observers = [];
   const uniforms = {};
+  let reduceMotion = false;
+  const motionPreference = {
+    get matches() { return reduceMotion; },
+    addEventListener(name, listener) { if (name === 'change') motionListeners.add(listener); },
+    removeEventListener(name, listener) { if (name === 'change') motionListeners.delete(listener); },
+  };
   const document = {
     hidden: false,
     addEventListener(name, listener) { listeners.set(name, listener); },
@@ -23,6 +30,7 @@ function harness() {
   };
   const context = {
     document,
+    window: { matchMedia: () => motionPreference },
     DEFAULT_HOVER_SWEEP_DEG: 90,
     METAL_MATERIALS: {
       gold: { highRGB: [1, 0.9, 0.5], midRGB: [0.8, 0.6, 0.1], darkRGB: [0.1, 0.08, 0.02] },
@@ -71,7 +79,11 @@ function harness() {
   const visible = (surface, value) => observers.at(-1).callback([
     { target: surface.result.canvas, isIntersecting: value },
   ]);
-  return { engine, frames, listeners, uniforms, document, tick, settle, surface, visible };
+  const setReducedMotion = value => {
+    reduceMotion = value;
+    motionListeners.forEach(listener => listener());
+  };
+  return { engine, frames, listeners, motionListeners, uniforms, document, tick, settle, surface, visible, setReducedMotion };
 }
 
 test('only visible surfaces paint, and idle surfaces stop immediately', () => {
@@ -134,4 +146,28 @@ test('optical changes and focused controls wake a settled renderer', () => {
   control.state.focused = true;
   h.engine.invalidate('config'); h.settle();
   assert.ok(Math.abs(control.result.currentHoverRad - Math.PI) < 0.00001);
+});
+
+test('reduced motion applies light states immediately and pauses Auto Flow', () => {
+  const h = harness();
+  const control = h.surface('reduced');
+  control.state.autoFlowOverride = true;
+  h.visible(control, true);
+  h.setReducedMotion(true); h.tick();
+  assert.equal(h.frames.size, 0);
+  assert.equal(control.result.draws, 1);
+
+  control.state.hovered = true;
+  h.engine.invalidate('reduced'); h.tick();
+  assert.equal(control.result.currentHoverRad, Math.PI / 2);
+  assert.equal(control.result.currentHoverIntensity, 1);
+  assert.equal(h.frames.size, 0);
+
+  h.setReducedMotion(false); h.tick();
+  assert.equal(h.frames.size, 1);
+  h.setReducedMotion(true); h.tick();
+  assert.equal(h.frames.size, 0);
+
+  h.engine.unregister('reduced');
+  assert.equal(h.motionListeners.size, 0);
 });

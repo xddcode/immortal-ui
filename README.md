@@ -75,7 +75,7 @@ The core components are exported from `src/components/ImmortalComponents.tsx`:
 - `ImmortalBadge` — capsule badge with a status dot.
 - `ImmortalCard` — container with optional title, description, badge, and header action.
 
-`ImmortalModal` is exported from `src/components/ImmortalModal.tsx`. Toast notifications use `ToastProvider` and `useToast` from `src/components/ImmortalToast.tsx`.
+`ImmortalButtonGroup`, `ImmortalButtonGroupSeparator`, and `ImmortalButtonGroupText` are exported from `src/components/ImmortalButtonGroup.tsx`. `ImmortalModal` is exported from `src/components/ImmortalModal.tsx`. Toast notifications use `ToastProvider` and `useToast` from `src/components/ImmortalToast.tsx`.
 
 ## Use the components
 
@@ -113,12 +113,12 @@ export default function App() {
 }
 ```
 
-To use Immortal UI in another React project, copy `ImmortalComponents.tsx`, `ImmortalModal.tsx`, `ImmortalToast.tsx`, `AudioEngine.ts`, and `WebGLMetalEngine.tsx`, together with the shared `src/index.css`. Install `lucide-react`, configure Tailwind CSS 4, and retain your application's React setup. The [getting started guide](https://immortal.build/#/docs/getting-started) walks through the complete integration.
+To use Immortal UI in another React project, copy `ImmortalComponents.tsx`, `ImmortalButtonGroup.tsx`, `ButtonGroupContext.ts`, `ImmortalModal.tsx`, `ImmortalToast.tsx`, `AudioEngine.ts`, and `WebGLMetalEngine.tsx`, together with `ImmortalButtonGroup.css` and the shared `src/index.css`. Install `lucide-react`, configure Tailwind CSS 4, and retain your application's React setup. The [getting started guide](https://immortal.build/#/docs/getting-started) walks through the complete integration.
 
 ## Explore the showcase
 
 - **Home**: a concise brand hero and an interactive Forma project workspace, built from the existing components. Try Chrome, Gold, and Black Titanium directly in the workspace. Its local material scope inherits the global optical settings while keeping the site-wide material selection independent.
-- **Components**: one searchable directory for all 13 components. Each detail page includes a live preview, TSX usage, setup requirements, API reference, and related components.
+- **Components**: one searchable directory for all 14 components. Each detail page includes a live preview, TSX usage, setup requirements, API reference, and related components.
 - **Docs**: a complete manual integration guide, from source files and shared CSS to the first component.
 - **Examples**: Cards, Dashboard, Playground, and the original composite configuration form.
 - **Materials**: the original material previews and optical controls.
@@ -159,6 +159,9 @@ src/
     HeroWorkspace.css             Responsive workspace layout
     HeroMark3D.tsx                 Homepage-only rotating metal brand mark
     ImmortalComponents.tsx         Core components and prop types
+    ImmortalButtonGroup.tsx        Related-action composition, separators, and text
+    ImmortalButtonGroup.css        Shared group layout and logical-direction styles
+    ButtonGroupContext.ts          Shared group surface context
     ImmortalModal.tsx              Modal dialog
     ImmortalToast.tsx              Toast provider and hook
     WebGLMetalEngine.tsx           Material presets, context, and shaders

@@ -1,0 +1,97 @@
+.immortal-button-group {
+  position: relative;
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  border-radius: 12px;
+  isolation: isolate;
+  vertical-align: middle;
+}
+.immortal-button-group.is-composition {
+  border-radius: 0;
+}
+.immortal-button-group-content {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  width: 100%;
+  max-width: 100%;
+  align-items: stretch;
+  border-radius: var(--immortal-button-group-cap-radius, 11px);
+}
+.immortal-button-group-content[data-orientation="horizontal"] {
+  flex-direction: row;
+  align-items: center;
+}
+.immortal-button-group-content[data-orientation="vertical"] {
+  flex-direction: column;
+}
+.is-composition > .immortal-button-group-content {
+  gap: 4px;
+  border-radius: 0;
+}
+.immortal-button-group-content > .immortal-button,
+.immortal-button-group-content > .immortal-button > span.relative {
+  border-radius: 0 !important;
+}
+.immortal-button-group-content > .immortal-button {
+  flex-shrink: 0;
+}
+.immortal-button-group-content > .immortal-button:focus-visible {
+  position: relative;
+  z-index: 3;
+}
+.immortal-button-group-content[data-orientation="horizontal"] > :first-child,
+.immortal-button-group-content[data-orientation="horizontal"] > :first-child > span.relative,
+.immortal-button-group-content[data-orientation="horizontal"] > :first-child > div {
+  border-start-start-radius: var(--immortal-button-group-cap-radius, 11px) !important;
+  border-end-start-radius: var(--immortal-button-group-cap-radius, 11px) !important;
+}
+.immortal-button-group-content[data-orientation="horizontal"] > :last-child,
+.immortal-button-group-content[data-orientation="horizontal"] > :last-child > span.relative,
+.immortal-button-group-content[data-orientation="horizontal"] > :last-child > div {
+  border-start-end-radius: var(--immortal-button-group-cap-radius, 11px) !important;
+  border-end-end-radius: var(--immortal-button-group-cap-radius, 11px) !important;
+}
+.immortal-button-group-content[data-orientation="vertical"] > :first-child,
+.immortal-button-group-content[data-orientation="vertical"] > :first-child > span.relative,
+.immortal-button-group-content[data-orientation="vertical"] > :first-child > div {
+  border-start-start-radius: var(--immortal-button-group-cap-radius, 11px) !important;
+  border-start-end-radius: var(--immortal-button-group-cap-radius, 11px) !important;
+}
+.immortal-button-group-content[data-orientation="vertical"] > :last-child,
+.immortal-button-group-content[data-orientation="vertical"] > :last-child > span.relative,
+.immortal-button-group-content[data-orientation="vertical"] > :last-child > div {
+  border-end-start-radius: var(--immortal-button-group-cap-radius, 11px) !important;
+  border-end-end-radius: var(--immortal-button-group-cap-radius, 11px) !important;
+}
+.immortal-button-group-separator {
+  flex-shrink: 0;
+  align-self: center;
+  background: rgba(255, 255, 255, 0.12);
+}
+.immortal-button-group-separator[data-orientation="vertical"] {
+  width: 1px;
+  height: 20px;
+}
+.immortal-button-group-separator[data-orientation="horizontal"] {
+  width: 20px;
+  height: 1px;
+}
+.immortal-button-group-text {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 12px;
+  color: #a1a1aa;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.immortal-button-group[data-variant="link"] .immortal-button:hover {
+  color: #f4f4f6;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}

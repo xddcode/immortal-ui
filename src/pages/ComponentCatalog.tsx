@@ -14,6 +14,10 @@ import {
   ImmortalBadge,
   ImmortalCard,
 } from "../components/ImmortalComponents";
+import {
+  ImmortalButtonGroup,
+  ImmortalButtonGroupSeparator,
+} from "../components/ImmortalButtonGroup";
 
 function Thumbnail({ id }: { id: string }) {
   switch (id) {
@@ -25,6 +29,14 @@ function Thumbnail({ id }: { id: string }) {
             Primary
           </ImmortalButton>
         </div>
+      );
+    case "button-group":
+      return (
+        <ImmortalButtonGroup aria-label="Project actions">
+          <ImmortalButton size="sm">Preview</ImmortalButton>
+          <ImmortalButtonGroupSeparator />
+          <ImmortalButton size="sm">Deploy</ImmortalButton>
+        </ImmortalButtonGroup>
       );
     case "input":
       return <ImmortalInput placeholder="Search your workspace…" kbd="⌘K" />;

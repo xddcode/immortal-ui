@@ -24,15 +24,39 @@ export function DocumentationLayout({
   }, [route.path]);
   const sections = isGuide
     ? gettingStartedSections
-    : componentId
+    : componentId === "button"
       ? [
-          ["preview", "Preview"],
-          ["usage", "Usage"],
+          ["preview", "Variants"],
+          ["examples", "Sizes"],
+          ["icons", "Icons"],
+          ["states", "States"],
+          ["materials", "Materials"],
+          ["guidelines", "Guidelines"],
           ["setup", "Setup & dependencies"],
           ["api", "API reference"],
           ["related", "Explore further"],
         ]
-      : [];
+      : componentId === "button-group"
+        ? [
+            ["preview", "Variants"],
+            ["examples", "Sizes"],
+            ["icons", "Icons"],
+            ["materials", "Materials"],
+            ["layout", "Layout & composition"],
+            ["input", "Input composition"],
+            ["setup", "Setup & dependencies"],
+            ["api", "API reference"],
+            ["related", "Explore further"],
+          ]
+        : componentId
+          ? [
+            ["preview", "Preview"],
+            ["usage", "Usage"],
+            ["setup", "Setup & dependencies"],
+            ["api", "API reference"],
+            ["related", "Explore further"],
+          ]
+        : [];
   function scrollToSection(id: string) {
     document
       .getElementById(id)

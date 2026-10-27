@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect, ReactNode } from 'react';
+import React, { useState, useRef, useEffect, useContext, ReactNode } from 'react';
 import { Loader2 } from 'lucide-react';
+import { ButtonGroupContext } from './ButtonGroupContext';
 import {
   MetalMaterialId,
   METAL_MATERIALS,
@@ -52,32 +53,46 @@ const CLASSIC_RIM_DANGER = `linear-gradient(
      Solution C WebGL GLSL Flowing Metal Shader
    ========================================================================= */
 export interface ImmortalButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'metallic' | 'recessed' | 'danger' | 'ghost';
+  variant?: 'default' | 'metallic' | 'recessed' | 'danger' | 'ghost' | 'link';
   size?: 'sm' | 'md' | 'lg' | 'icon';
   material?: MetalMaterialId;
   loading?: boolean;
+  loadingText?: ReactNode;
   soundType?: 'button' | 'metal' | 'switch' | 'select';
   icon?: ReactNode;
+  iconPosition?: 'start' | 'end';
   sweepDeg?: number;
   bezelPx?: number;
 }
 
-export const ImmortalButton: React.FC<ImmortalButtonProps> = ({
+const BUTTON_SIZE_CLASSES = {
+  sm: 'h-8 px-3 text-xs rounded-lg gap-1.5',
+  md: 'h-10 px-4 text-xs sm:text-sm rounded-xl gap-2',
+  lg: 'h-12 px-6 text-sm rounded-2xl gap-2.5 font-medium',
+  icon: 'w-10 h-10 p-0 rounded-xl justify-center',
+} as const;
+const BUTTON_OUTER_RADII = { sm: 8, md: 12, lg: 16, icon: 12 } as const;
+
+export const ImmortalButton = React.forwardRef<HTMLButtonElement, ImmortalButtonProps>(function ImmortalButton({
   children,
   variant = 'default',
   size = 'md',
   material,
   loading = false,
+  loadingText,
   soundType = 'button',
   icon,
+  iconPosition = 'start',
   sweepDeg,
   bezelPx,
   className = '',
   onClick,
+  onMouseEnter,
+  onMouseLeave,
   disabled,
   style,
   ...props
-}) => {
+}, ref) {
   const {
     material: globalMaterial,
     bezelWidth: globalBezel,
@@ -85,28 +100,54 @@ export const ImmortalButton: React.FC<ImmortalButtonProps> = ({
     surfaceGradientAmplitude,
   } = useMetalConfig();
   const [hovered, setHovered] = useState(false);
+  const grouped = useContext(ButtonGroupContext);
 
   const effectiveMaterial: MetalMaterialId = material || globalMaterial;
   const matPreset = METAL_MATERIALS[effectiveMaterial] || METAL_MATERIALS.classic;
   const isClassic = !matPreset.isWebGLMetal;
   const playSound = useMaterialSound(!isClassic && variant === 'danger' && !material ? 'rosegold' : effectiveMaterial);
+  const effectiveSweep = typeof sweepDeg === 'number' && Number.isFinite(sweepDeg) ? sweepDeg : globalHoverSweep;
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (disabled || loading) return;
     playSound(variant === 'metallic' ? 'metal' : soundType);
-    if (onClick) onClick(e);
+    onClick?.(e);
   };
+  const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
+    setHovered(true);
+    onMouseEnter?.(e);
+  };
+  const handleMouseLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
+    setHovered(false);
+    onMouseLeave?.(e);
+  };
+  const iconContent = loading ? (
+    <Loader2 aria-hidden="true" className="w-4 h-4 shrink-0 animate-spin text-current" />
+  ) : (
+    icon && <span aria-hidden="true" className="inline-flex shrink-0 items-center justify-center">{icon}</span>
+  );
+  const content = (
+    <>
+      {iconPosition === 'start' && iconContent}
+      {loading && loadingText !== undefined ? loadingText : children}
+      {iconPosition === 'end' && iconContent}
+    </>
+  );
 
-  if (variant === 'ghost') {
+  if (variant === 'ghost' || variant === 'link') {
     return (
       <button
         {...props}
+        ref={ref}
+        aria-busy={loading || undefined}
         disabled={disabled || loading}
         onClick={handleClick}
-        className={`h-10 px-4 rounded-xl border border-white/10 text-xs sm:text-sm text-zinc-300 hover:text-white hover:bg-white/5 cursor-pointer transition-colors inline-flex items-center justify-center gap-2 ${className}`}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        style={style}
+        className={`immortal-button relative inline-flex items-center justify-center border font-medium select-none cursor-pointer transition-[color,background-color,transform] disabled:opacity-50 disabled:pointer-events-none ${variant === 'link' ? 'border-transparent text-zinc-400 underline-offset-4 hover:text-white hover:underline' : 'border-white/10 text-zinc-300 hover:text-white hover:bg-white/5 active:bg-white/10 active:translate-y-[1px] active:scale-[0.985]'} ${BUTTON_SIZE_CLASSES[size]} ${className}`}
       >
-        {icon}
-        {children}
+        {content}
       </button>
     );
   }
@@ -116,7 +157,6 @@ export const ImmortalButton: React.FC<ImmortalButtonProps> = ({
      ----------------------------------------------------------------------- */
   if (isClassic) {
     const getClassicVariantStyle = (): React.CSSProperties => {
-      const effectiveSweep = sweepDeg !== undefined ? sweepDeg : globalHoverSweep;
       const customVars = {
         '--hover-sweep': `${effectiveSweep}deg`,
       } as React.CSSProperties;
@@ -125,85 +165,73 @@ export const ImmortalButton: React.FC<ImmortalButtonProps> = ({
         case 'metallic':
           return {
             ...customVars,
-            backgroundImage: `linear-gradient(160deg, #ffffff 0%, #d4d4d8 60%, #a1a1aa 100%), ${CLASSIC_RIM_METALLIC}`,
+            backgroundImage: grouped
+              ? 'linear-gradient(160deg, #ffffff 0%, #d4d4d8 60%, #a1a1aa 100%)'
+              : `linear-gradient(160deg, #ffffff 0%, #d4d4d8 60%, #a1a1aa 100%), ${CLASSIC_RIM_METALLIC}`,
             backgroundOrigin: 'padding-box, border-box',
             backgroundClip: 'padding-box, border-box',
-            boxShadow: `0 8px 20px -2px rgba(255, 255, 255, 0.14), 0 4px 10px rgba(0, 0, 0, 0.85), inset 0 1px 1px #ffffff, inset 0 -1px 1px rgba(0, 0, 0, 0.25)`,
+            boxShadow: grouped ? 'none' : `0 8px 20px -2px rgba(255, 255, 255, 0.14), 0 4px 10px rgba(0, 0, 0, 0.85), inset 0 1px 1px #ffffff, inset 0 -1px 1px rgba(0, 0, 0, 0.25)`,
             color: '#09090b',
             fontWeight: 600,
           };
         case 'recessed':
           return {
             ...customVars,
-            backgroundImage: `var(--bg-concave), ${CLASSIC_RIM_SUBTLE}`,
+            backgroundImage: grouped ? 'var(--bg-concave)' : `var(--bg-concave), ${CLASSIC_RIM_SUBTLE}`,
             backgroundOrigin: 'padding-box, border-box',
             backgroundClip: 'padding-box, border-box',
-            boxShadow: `var(--shadow-concave)`,
+            boxShadow: grouped ? 'none' : `var(--shadow-concave)`,
             color: hovered ? '#f4f4f6' : '#a1a1aa',
           };
         case 'danger':
           return {
             ...customVars,
-            backgroundImage: `linear-gradient(145deg, #2a1216 0%, #13080a 60%, #1f0d10 100%), ${CLASSIC_RIM_DANGER}`,
+            backgroundImage: grouped
+              ? 'linear-gradient(145deg, #2a1216 0%, #13080a 60%, #1f0d10 100%)'
+              : `linear-gradient(145deg, #2a1216 0%, #13080a 60%, #1f0d10 100%), ${CLASSIC_RIM_DANGER}`,
             backgroundOrigin: 'padding-box, border-box',
             backgroundClip: 'padding-box, border-box',
-            boxShadow: `var(--shadow-convex-sm)`,
+            boxShadow: grouped ? 'none' : `var(--shadow-convex-sm)`,
             color: '#fda4af',
           };
         case 'default':
         default:
           return {
             ...customVars,
-            backgroundImage: `${hovered ? 'var(--bg-convex-hover)' : 'var(--bg-convex)'}, ${CLASSIC_RIM_DEFAULT}`,
+            backgroundImage: grouped
+              ? (hovered ? 'rgba(255,255,255,0.045)' : 'none')
+              : `${hovered ? 'var(--bg-convex-hover)' : 'var(--bg-convex)'}, ${CLASSIC_RIM_DEFAULT}`,
             backgroundOrigin: 'padding-box, border-box',
             backgroundClip: 'padding-box, border-box',
-            boxShadow: `var(--shadow-convex-sm)`,
-            color: hovered ? '#ffffff' : '#f4f4f6',
+            boxShadow: grouped ? 'none' : `var(--shadow-convex-sm)`,
+            color: grouped ? 'inherit' : hovered ? '#ffffff' : '#f4f4f6',
           };
-      }
-    };
-
-    const getClassicSizeClasses = () => {
-      switch (size) {
-        case 'sm':
-          return 'h-8 px-3 text-xs rounded-lg gap-1.5';
-        case 'lg':
-          return 'h-12 px-6 text-sm rounded-2xl gap-2.5 font-medium';
-        case 'icon':
-          return 'w-10 h-10 p-0 rounded-xl justify-center';
-        case 'md':
-        default:
-          return 'h-10 px-4 text-xs sm:text-sm rounded-xl gap-2';
       }
     };
 
     return (
       <button
         {...props}
+        ref={ref}
+        aria-busy={loading || undefined}
         disabled={disabled || loading}
         onClick={handleClick}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         style={{
           ...getClassicVariantStyle(),
           ...style,
         }}
         className={`
-          immortal-rim-sweep relative inline-flex items-center justify-center border border-transparent
+          immortal-button immortal-rim-sweep relative inline-flex items-center justify-center border border-transparent
           font-medium select-none cursor-pointer
           active:translate-y-[1px] active:scale-[0.985]
-          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40
           disabled:opacity-50 disabled:pointer-events-none
-          ${getClassicSizeClasses()}
+          ${BUTTON_SIZE_CLASSES[size]}
           ${className}
         `}
       >
-        {loading ? (
-          <Loader2 className="w-4 h-4 animate-spin text-current" />
-        ) : (
-          icon && <span className="inline-flex shrink-0 items-center justify-center">{icon}</span>
-        )}
-        {children}
+        {content}
       </button>
     );
   }
@@ -211,7 +239,8 @@ export const ImmortalButton: React.FC<ImmortalButtonProps> = ({
   /* -----------------------------------------------------------------------
      MODE B: Solution C WebGL Flowing Metal Button (1px hairline micro-bezel)
      ----------------------------------------------------------------------- */
-  const effectiveBezel = bezelPx !== undefined ? bezelPx : globalBezel;
+  const requestedBezel = bezelPx ?? globalBezel;
+  const effectiveBezel = Number.isFinite(requestedBezel) ? Math.max(0, requestedBezel) : 1;
 
   const getOuterSizeClasses = () => {
     switch (size) {
@@ -230,14 +259,14 @@ export const ImmortalButton: React.FC<ImmortalButtonProps> = ({
   const getInnerPadClasses = () => {
     switch (size) {
       case 'sm':
-        return 'px-3 rounded-[7px] gap-1.5';
+        return 'px-3 gap-1.5';
       case 'lg':
-        return 'px-6 rounded-[15px] gap-2.5';
+        return 'px-6 gap-2.5';
       case 'icon':
-        return 'p-0 rounded-[11px] justify-center';
+        return 'p-0 justify-center';
       case 'md':
       default:
-        return 'px-4 rounded-[11px] gap-2';
+        return 'px-4 gap-2';
     }
   };
 
@@ -269,66 +298,75 @@ export const ImmortalButton: React.FC<ImmortalButtonProps> = ({
       };
     }
     return {
-      background: matPreset.capGradient,
-      color: hovered ? matPreset.accentHex : '#f4f4f6',
-      boxShadow: 'inset 0 -1px 1.5px rgba(0,0,0,0.85)',
+      background: grouped ? (hovered ? 'rgba(255,255,255,0.045)' : 'transparent') : matPreset.capGradient,
+      color: grouped ? 'inherit' : hovered ? matPreset.accentHex : '#f4f4f6',
+      boxShadow: grouped ? 'none' : 'inset 0 -1px 1.5px rgba(0,0,0,0.85)',
     };
   };
+
+  const metalIconContent = loading ? (
+    <Loader2 aria-hidden="true" className="w-4 h-4 shrink-0 animate-spin text-current" />
+  ) : (
+    icon && (
+      <span
+        aria-hidden="true"
+        style={{ color: variant === 'metallic' ? 'currentColor' : matPreset.accentHex }}
+        className="inline-flex shrink-0 items-center justify-center"
+      >
+        {icon}
+      </span>
+    )
+  );
 
   return (
     <button
       {...props}
+      ref={ref}
+      aria-busy={loading || undefined}
       disabled={disabled || loading}
       onClick={handleClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       style={{
-        padding: `${effectiveBezel}px`,
-        boxShadow:
-          variant === 'recessed'
+        padding: grouped ? 0 : `${effectiveBezel}px`,
+        boxShadow: grouped ? 'none' : variant === 'recessed'
             ? 'inset 0 2px 5px rgba(0,0,0,0.9), 0 1px 0 rgba(255,255,255,0.05)'
             : '0 4px 10px rgba(0, 0, 0, 0.75), 0 1px 2px rgba(0, 0, 0, 0.8)',
         ...style,
       }}
       className={`
-        relative inline-flex items-center justify-center overflow-hidden font-medium
+        immortal-button relative inline-flex items-center justify-center overflow-hidden font-medium
         cursor-pointer select-none active:scale-[0.98] transition-transform duration-150
-        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40
         disabled:opacity-50 disabled:pointer-events-none
         ${getOuterSizeClasses()}
         ${className}
       `}
     >
-      <WebGLBezelCanvas
-        material={variant === 'danger' && !material ? 'rosegold' : effectiveMaterial}
-        dimmed={variant === 'recessed' && !hovered}
-        hovered={hovered}
-        sweepDeg={sweepDeg}
-        canvasWidth={size === 'icon' ? 96 : 220}
-        canvasHeight={80}
-      />
+      {!grouped && (
+        <WebGLBezelCanvas
+          material={variant === 'danger' && !material ? 'rosegold' : effectiveMaterial}
+          dimmed={variant === 'recessed' && !hovered}
+          hovered={hovered}
+          sweepDeg={effectiveSweep}
+          canvasWidth={size === 'icon' ? 96 : 220}
+          canvasHeight={80}
+        />
+      )}
 
       <span
-        style={getCapStyle()}
+        style={{
+          ...getCapStyle(),
+          borderRadius: `${Math.max(0, BUTTON_OUTER_RADII[size] - effectiveBezel)}px`,
+        }}
         className={`relative z-10 w-full h-full inline-flex items-center justify-center gap-2 transition-colors duration-150 ${getInnerPadClasses()}`}
       >
-        {loading ? (
-          <Loader2 className="w-4 h-4 animate-spin text-current" />
-        ) : (
-          icon && (
-            <span
-              style={{ color: variant === 'metallic' ? 'currentColor' : matPreset.accentHex }}
-              className="inline-flex shrink-0 items-center justify-center"
-            >
-              {icon}
-            </span>
-          )
-        )}
-        {children}
+        {iconPosition === 'start' && metalIconContent}
+        {loading && loadingText !== undefined ? loadingText : children}
+        {iconPosition === 'end' && metalIconContent}
       </span>
     </button>
   );
-};
+});
 
 /* =========================================================================
    2. ImmortalInput

@@ -87,13 +87,13 @@ export function GettingStarted() {
           code={`git clone https://github.com/fre2d0m/immortal-ui.git\ncd immortal-ui\nnpm install --legacy-peer-deps\nnpm run dev`}
         />
         <p>
-          For an existing app, copy the five supporting component files and
-          shared stylesheet into your own <code>src/</code>. Keep the supporting
+          For an existing app, copy the seven supporting component files and
+          shared styles into your own <code>src/</code>. Keep the supporting
           engines alongside the components.
         </p>
         <CodeBlock
           label="Files to copy into your app"
-          code={`src/\n  components/                    # Copy these five files\n    ImmortalComponents.tsx\n    ImmortalModal.tsx\n    ImmortalToast.tsx\n    WebGLMetalEngine.tsx\n    AudioEngine.ts\n  index.css                      # Merge into your global stylesheet`}
+          code={`src/\n  components/                    # Copy these seven files\n    ImmortalComponents.tsx\n    ImmortalButtonGroup.tsx\n    ButtonGroupContext.ts\n    ImmortalModal.tsx\n    ImmortalToast.tsx\n    WebGLMetalEngine.tsx\n    AudioEngine.ts\n  components/\n    ImmortalButtonGroup.css      # Required when using ButtonGroup\n  index.css                      # Merge into your global stylesheet`}
         />
       </section>
       <section id="dependencies" className="doc-section">

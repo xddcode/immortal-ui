@@ -212,6 +212,17 @@ body {
 :is(.immortal-container, .immortal-divider).border-b { border-bottom-width: var(--container-border-width); }
 .immortal-container.border-l { border-left-width: var(--container-border-width); }
 .immortal-container.border-r { border-right-width: var(--container-border-width); }
+.immortal-button { touch-action: manipulation; }
+.immortal-button:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.72);
+  outline-offset: 2px;
+}
+@media (forced-colors: active) {
+  .immortal-button { border-color: ButtonText; }
+  .immortal-button:focus-visible { outline-color: Highlight; }
+}
 @media (prefers-reduced-motion: reduce) {
   .immortal-rim-sweep, .chrome-dispersion-surface { transition-duration: 0s; animation: none !important; }
+  .immortal-button { transition-duration: 0s; }
+  .immortal-button .animate-spin { animation: none; }
 }

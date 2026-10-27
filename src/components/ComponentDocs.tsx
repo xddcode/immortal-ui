@@ -1,6 +1,13 @@
 import React, { useState } from "react";
 import { ArrowLeft, ArrowRight, ExternalLink } from "lucide-react";
 import { CodeBlock } from "./CodeBlock";
+import { ButtonDocsContent } from "./ButtonDocsContent";
+import { ButtonGroupDocsContent } from "./ButtonGroupDocsContent";
+import {
+  ImmortalButtonGroup,
+  ImmortalButtonGroupSeparator,
+  ImmortalButtonGroupText,
+} from "./ImmortalButtonGroup";
 import { componentCatalog, componentById } from "../content/components";
 import { ImmortalModal } from "./ImmortalModal";
 import {
@@ -51,43 +58,57 @@ export const ComponentDocs: React.FC<{ componentId: string }> = ({
       description:
         "Convex micro-curved surface with a 1px 135° dual-specular rim. Supports optional hover angular sweep (90°, 180°, 360°) and physical metal shaders.",
       preview: (
-        <div className="flex flex-wrap items-center gap-3">
-          <ImmortalButton variant="default">Default Rim</ImmortalButton>
-          <ImmortalButton variant="default" sweepDeg={360}>
-            Orbit Sweep (+360°)
-          </ImmortalButton>
-          <ImmortalButton variant="metallic">Metallic Primary</ImmortalButton>
-          <ImmortalButton variant="recessed">Recessed Secondary</ImmortalButton>
-          <ImmortalButton variant="danger">Danger Action</ImmortalButton>
-          <ImmortalButton
-            variant="default"
-            loading={btnLoading}
-            onClick={() => {
-              setBtnLoading(true);
-              setTimeout(() => setBtnLoading(false), 1500);
-            }}
-          >
-            {btnLoading ? "Processing..." : "Test Loading"}
-          </ImmortalButton>
+        <div className="flex flex-col gap-5">
+          <div className="flex flex-wrap items-center gap-3">
+            <ImmortalButton variant="default">Default Rim</ImmortalButton>
+            <ImmortalButton variant="default" sweepDeg={360}>
+              Orbit Sweep (+360°)
+            </ImmortalButton>
+            <ImmortalButton variant="metallic">Metallic Primary</ImmortalButton>
+            <ImmortalButton variant="recessed">Recessed Secondary</ImmortalButton>
+            <ImmortalButton variant="danger">Danger Action</ImmortalButton>
+            <ImmortalButton variant="ghost">Ghost Action</ImmortalButton>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <ImmortalButton size="sm">Small</ImmortalButton>
+            <ImmortalButton size="md">Medium</ImmortalButton>
+            <ImmortalButton size="lg">Large</ImmortalButton>
+            <ImmortalButton size="icon" aria-label="Continue" icon={<ArrowRight size={16} />} />
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <ImmortalButton
+              loading={btnLoading}
+              loadingText="Processing..."
+              onClick={() => {
+                setBtnLoading(true);
+                setTimeout(() => setBtnLoading(false), 1500);
+              }}
+            >
+              Test Loading
+            </ImmortalButton>
+            <ImmortalButton variant="ghost" loading loadingText="Loading ghost" />
+            <ImmortalButton disabled>Disabled</ImmortalButton>
+          </div>
         </div>
       ),
-      reactSnippet: `// React / TSX Usage (supports per-button material and sweepDeg props)
+      reactSnippet: `// React / TSX Usage
 import { ImmortalButton } from "./components/ImmortalComponents";
+import { ArrowRight } from "lucide-react";
 
 export function ButtonDemo() {
   return (
-    <div className="flex gap-3">
-      {/* Default 135° static dual-specular rim */}
-      <ImmortalButton variant="default">Default Button</ImmortalButton>
+    <div className="flex flex-wrap gap-3">
+      <ImmortalButton>Default Button</ImmortalButton>
+      <ImmortalButton variant="metallic" material="gold">Deploy Now</ImmortalButton>
+      <ImmortalButton variant="ghost">Quiet Action</ImmortalButton>
+      <ImmortalButton variant="default" sweepDeg={360}>Hover Orbit</ImmortalButton>
 
-      {/* Optional 360° angular specular sweep on hover */}
-      <ImmortalButton variant="default" sweepDeg={360}>Hover Orbit (360°)</ImmortalButton>
+      <ImmortalButton loading loadingText="Deploying...">Deploy</ImmortalButton>
+      <ImmortalButton disabled>Unavailable</ImmortalButton>
+      <ImmortalButton size="icon" aria-label="Continue" icon={<ArrowRight size={16} />} />
 
-      {/* Specific WebGL physical metal override */}
-      <ImmortalButton variant="default" material="gold">24K Gold</ImmortalButton>
-
-      {/* High-contrast metallic primary button */}
-      <ImmortalButton variant="metallic">Deploy Now</ImmortalButton>
+      {/* Native form attributes are forwarded. */}
+      <ImmortalButton type="submit">Save changes</ImmortalButton>
     </div>
   );
 }`,
@@ -146,7 +167,74 @@ export function ButtonDemo() {
   transform: translateY(1px);
   box-shadow: inset 0 2px 5px rgba(0,0,0,0.92);
 }
+
+.skeuo-btn:focus-visible {
+  outline: 2px solid rgba(255,255,255,0.72);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeuo-btn { transition-duration: 0s; }
+}
 </style>`,
+    },
+    {
+      id: "button-group",
+      name: "Immortal Button Group",
+      category: "buttons",
+      description:
+        "A shared surface for related actions. Supports horizontal and vertical layouts, separators, text, and nested groups.",
+      preview: (
+        <div className="flex w-full flex-col items-start gap-5">
+          <ImmortalButtonGroup aria-label="Project actions">
+            <ImmortalButton size="sm">Preview</ImmortalButton>
+            <ImmortalButtonGroupSeparator />
+            <ImmortalButton size="sm">Deploy</ImmortalButton>
+            <ImmortalButton size="icon" aria-label="Open project" icon={<ArrowRight size={15} />} />
+          </ImmortalButtonGroup>
+          <ImmortalButtonGroup aria-label="Editor actions">
+            <ImmortalButtonGroup aria-label="History actions">
+              <ImmortalButton size="sm">Undo</ImmortalButton>
+              <ImmortalButton size="sm">Redo</ImmortalButton>
+            </ImmortalButtonGroup>
+            <ImmortalButtonGroup aria-label="Publishing actions">
+              <ImmortalButton size="sm">Save</ImmortalButton>
+              <ImmortalButtonGroupSeparator />
+              <ImmortalButton size="sm">Publish</ImmortalButton>
+            </ImmortalButtonGroup>
+          </ImmortalButtonGroup>
+          <ImmortalButtonGroup orientation="vertical" aria-label="Account actions">
+            <ImmortalButton size="sm">Profile</ImmortalButton>
+            <ImmortalButtonGroupSeparator orientation="horizontal" />
+            <ImmortalButton size="sm">Settings</ImmortalButton>
+          </ImmortalButtonGroup>
+        </div>
+      ),
+      reactSnippet: `import { ImmortalButton } from "./components/ImmortalComponents";
+import {
+  ImmortalButtonGroup,
+  ImmortalButtonGroupSeparator,
+  ImmortalButtonGroupText,
+} from "./components/ImmortalButtonGroup";
+
+export function ButtonGroupDemo() {
+  return (
+    <div className="flex flex-col gap-4">
+      <ImmortalButtonGroup aria-label="Project actions">
+        <ImmortalButton size="sm">Preview</ImmortalButton>
+        <ImmortalButtonGroupSeparator />
+        <ImmortalButton size="sm">Deploy</ImmortalButton>
+      </ImmortalButtonGroup>
+
+      <ImmortalButtonGroup orientation="vertical" aria-label="Account actions">
+        <ImmortalButton size="sm">Profile</ImmortalButton>
+        <ImmortalButtonGroupSeparator orientation="horizontal" />
+        <ImmortalButton size="sm">Settings</ImmortalButton>
+      </ImmortalButtonGroup>
+    </div>
+  );
+}`,
+      htmlSnippet: "",
     },
     {
       id: "input",
@@ -646,59 +734,68 @@ export function ToastDemo() {
         </div>
         <p className="site-page-description">{info.summary}</p>
       </header>
-      <section id="preview" className="scroll-mt-24">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-medium text-zinc-300">Preview</h2>
-          <span className="site-eyebrow">INTERACTIVE</span>
-        </div>
-        <div
-          style={{
-            backgroundImage: "var(--bg-card), var(--border-rim-subtle)",
-            backgroundOrigin: "padding-box, border-box",
-            backgroundClip: "padding-box, border-box",
-            boxShadow: "var(--shadow-convex)",
-          }}
-          className="immortal-container flex min-h-[230px] items-center justify-center rounded-2xl border border-transparent px-5 py-9 sm:px-8"
-        >
-          {currentItem.preview}
-        </div>
-        <p className="mt-3 text-xs leading-6 text-zinc-500">
-          {currentItem.description}
-        </p>
-      </section>
-      <section id="usage" className="doc-section">
-        <h2>Usage</h2>
-        <p>
-          Import from your copied component files. The paths below assume this
-          example lives in <code>src/App.tsx</code>.
-        </p>
-        <CodeBlock
-          code={currentItem.reactSnippet}
-          label={`React / TSX · ${info.exportName}`}
-        />
-        {currentItem.htmlSnippet && (
-          <details className="mt-4 rounded-xl border border-white/[0.08] p-4">
-            <summary className="cursor-pointer text-xs text-zinc-400">
-              HTML / CSS style reference
-            </summary>
-            <p className="my-3 text-xs leading-6 text-zinc-500">
-              A visual reference from the original showcase. Use the React
-              implementation for interactive behavior and the full material
-              system.
+      {componentId === "button" ? (
+        <ButtonDocsContent htmlSnippet={currentItem.htmlSnippet} />
+      ) : componentId === "button-group" ? (
+        <ButtonGroupDocsContent />
+      ) : (
+        <>
+          <section id="preview" className="scroll-mt-24">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-sm font-medium text-zinc-300">Preview</h2>
+              <span className="site-eyebrow">INTERACTIVE</span>
+            </div>
+            <div
+              style={{
+                backgroundImage: "var(--bg-card), var(--border-rim-subtle)",
+                backgroundOrigin: "padding-box, border-box",
+                backgroundClip: "padding-box, border-box",
+                boxShadow: "var(--shadow-convex)",
+              }}
+              className="immortal-container flex min-h-[230px] items-center justify-center rounded-2xl border border-transparent px-5 py-9 sm:px-8"
+            >
+              {currentItem.preview}
+            </div>
+            <p className="mt-3 text-xs leading-6 text-zinc-500">
+              {currentItem.description}
+            </p>
+          </section>
+          <section id="usage" className="doc-section">
+            <h2>Usage</h2>
+            <p>
+              Import from your copied component files. The paths below assume this
+              example lives in <code>src/App.tsx</code>.
             </p>
             <CodeBlock
-              code={currentItem.htmlSnippet}
-              label="HTML / CSS reference"
+              code={currentItem.reactSnippet}
+              label={`React / TSX · ${info.exportName}`}
             />
-          </details>
-        )}
-      </section>
+            {currentItem.htmlSnippet && (
+              <details className="mt-4 rounded-xl border border-white/[0.08] p-4">
+                <summary className="cursor-pointer text-xs text-zinc-400">
+                  HTML / CSS style reference
+                </summary>
+                <p className="my-3 text-xs leading-6 text-zinc-500">
+                  A visual reference from the original showcase. Use the React
+                  implementation for interactive behavior and the full material
+                  system.
+                </p>
+                <CodeBlock
+                  code={currentItem.htmlSnippet}
+                  label="HTML / CSS reference"
+                />
+              </details>
+            )}
+          </section>
+        </>
+      )}
       <section id="setup" className="doc-section">
         <h2>Setup & dependencies</h2>
         <p>
-          Copy <code>{info.source}</code> together with{" "}
-          <code>AudioEngine.ts</code> and <code>WebGLMetalEngine.tsx</code>.
-          Modal also uses <code>ImmortalComponents.tsx</code>; Toast requires{" "}
+          Copy <code>{info.source}</code> together with its imports,{" "}
+          <code>AudioEngine.ts</code>, <code>WebGLMetalEngine.tsx</code>, and{" "}
+          <code>ButtonGroupContext.ts</code>. ButtonGroup also needs{" "}
+          <code>ImmortalButtonGroup.css</code>; Toast requires{" "}
           <code>ToastProvider</code> around your interface.
         </p>
         <p>

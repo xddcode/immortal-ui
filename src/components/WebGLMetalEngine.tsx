@@ -458,6 +458,11 @@ class SharedWebGLShaderEngine {
   private globalTime = 0;
   private intersection: IntersectionObserver | null = null;
   private surfaceIds = new WeakMap<Element, string>();
+  private motionPreference: MediaQueryList | null = null;
+
+  private motionPreferenceChanged = () => {
+    this.invalidate();
+  };
 
   private wake = () => {
     if (this.animId !== null || document.hidden || ![...this.surfaces.values()].some(s => s.visible)) return;
@@ -569,6 +574,10 @@ class SharedWebGLShaderEngine {
         this.wake();
       });
       document.addEventListener('visibilitychange', this.visibilityChanged);
+      if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+        this.motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+        this.motionPreference.addEventListener('change', this.motionPreferenceChanged);
+      }
     }
     this.surfaces.set(surface.id, surface);
     this.surfaceIds.set(surface.canvas, surface.id);
@@ -585,6 +594,8 @@ class SharedWebGLShaderEngine {
       this.intersection?.disconnect();
       this.intersection = null;
       document.removeEventListener('visibilitychange', this.visibilityChanged);
+      this.motionPreference?.removeEventListener('change', this.motionPreferenceChanged);
+      this.motionPreference = null;
     }
   }
 
@@ -595,9 +606,10 @@ class SharedWebGLShaderEngine {
     this.lastTime = now;
 
     const cfg = this.globalConfig;
+    const reduceMotion = this.motionPreference?.matches ?? false;
     const visibleSurfaces = [...this.surfaces.values()].filter(surface => surface.visible);
     if (!visibleSurfaces.length) return;
-    if (visibleSurfaces.some(surface => surface.getState().autoFlowOverride ?? cfg.autoFlow)) {
+    if (!reduceMotion && visibleSurfaces.some(surface => surface.getState().autoFlowOverride ?? cfg.autoFlow)) {
       this.globalTime += dt * 1.1 * cfg.flowSpeed;
     }
     this.initGL();
@@ -617,10 +629,15 @@ class SharedWebGLShaderEngine {
         const targetHoverRad = isActive ? (sweepDeg * Math.PI) / 180 : 0.0;
         const targetHoverIntensity = isActive ? 1.0 : 0.0;
 
-        surf.currentHoverRad +=
-          (targetHoverRad - surf.currentHoverRad) * Math.min(1, dt * 8.0);
-        surf.currentHoverIntensity +=
-          (targetHoverIntensity - surf.currentHoverIntensity) * Math.min(1, dt * 10.0);
+        if (reduceMotion) {
+          surf.currentHoverRad = targetHoverRad;
+          surf.currentHoverIntensity = targetHoverIntensity;
+        } else {
+          surf.currentHoverRad +=
+            (targetHoverRad - surf.currentHoverRad) * Math.min(1, dt * 8.0);
+          surf.currentHoverIntensity +=
+            (targetHoverIntensity - surf.currentHoverIntensity) * Math.min(1, dt * 10.0);
+        }
         if (Math.abs(targetHoverRad - surf.currentHoverRad) < 0.001) surf.currentHoverRad = targetHoverRad;
         if (Math.abs(targetHoverIntensity - surf.currentHoverIntensity) < 0.001) surf.currentHoverIntensity = targetHoverIntensity;
         const transitioning = surf.currentHoverRad !== targetHoverRad || surf.currentHoverIntensity !== targetHoverIntensity;
@@ -644,8 +661,9 @@ class SharedWebGLShaderEngine {
         const h = surf.canvas.height || 60;
         const aspect = w / Math.max(1, h);
 
-        const useAutoFlow =
-          st.autoFlowOverride !== undefined ? st.autoFlowOverride : cfg.autoFlow;
+        const useAutoFlow = !reduceMotion && (
+          st.autoFlowOverride !== undefined ? st.autoFlowOverride : cfg.autoFlow
+        );
         const tVal = useAutoFlow ? this.globalTime : 0.0;
         animating ||= transitioning || useAutoFlow;
         const key = [matId, st.dimmed, surf.currentHoverRad, surf.currentHoverIntensity,
@@ -799,6 +817,7 @@ export const WebGLBezelCanvas: React.FC<WebGLBezelSurfaceProps> = ({
   const idRef = useRef(`webgl-surf-${Math.random().toString(36).substring(2, 9)}`);
 
   const effectiveMaterial = material || globalMaterial;
+  const matPreset = METAL_MATERIALS[effectiveMaterial] || METAL_MATERIALS.classic;
 
   const interactionRef = useRef({ hovered: false, focused: false });
   const stateRef = useRef({
@@ -868,11 +887,13 @@ export const WebGLBezelCanvas: React.FC<WebGLBezelSurfaceProps> = ({
 
   return (
     <canvas
+      aria-hidden="true"
       data-metal-surface=""
       data-sweep-deg={sweepDeg ?? globalHoverSweep}
       ref={canvasRef}
       width={canvasWidth}
       height={canvasHeight}
+      style={{ background: matPreset.cssBorderRim }}
       className={`absolute inset-0 w-full h-full pointer-events-none ${className}`}
     />
   );
